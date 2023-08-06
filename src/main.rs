@@ -1,6 +1,6 @@
 use std::{error::Error, io, time::{Duration, Instant}, sync::mpsc, thread};
 use crossterm::{terminal::{EnterAlternateScreen, self, LeaveAlternateScreen}, ExecutableCommand, cursor::{Hide, Show}, event::{self, Event, KeyCode}};
-use rpace_rnvaders::{frame::{self, new_frame, Drawable}, render, player::Player};
+use rpace_rnvaders::{frame::{self, new_frame, Drawable}, render, player::Player, invaders::Invaders};
 use rusty_audio::Audio;
 fn main() -> Result<(), Box<dyn Error>> {
     println!("Hello, world!");
@@ -35,6 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     });
     let mut player = Player::new();
     let mut instant = Instant::now();
+    let mut invaders = Invaders::new();
     'gameloop: loop {
         //Per frame init
         let delta = instant.elapsed();
@@ -59,8 +60,17 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
         }
           //updates
-    player.update(delta);
+        player.update(delta);
+        if invaders.update(delta){
+            audio.play("move");
+        }
+
         player.draw(&mut curr_frame);
+        invaders.draw(&mut curr_frame);
+        let drawables: Vec<&dyn Drawable> = vec![&player, &invaders];
+        for drawable in drawables{
+            drawable.draw(&mut curr_frame);
+        }
         let _ = render_tx.send(curr_frame);
         thread::sleep(Duration::from_millis(1));
 
