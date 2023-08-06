@@ -1,4 +1,4 @@
-use std::{error::Error, io, time::Duration, sync::mpsc, thread};
+use std::{error::Error, io, time::{Duration, Instant}, sync::mpsc, thread};
 use crossterm::{terminal::{EnterAlternateScreen, self, LeaveAlternateScreen}, ExecutableCommand, cursor::{Hide, Show}, event::{self, Event, KeyCode}};
 use rpace_rnvaders::{frame::{self, new_frame, Drawable}, render, player::Player};
 use rusty_audio::Audio;
@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     'gameloop: loop {
         //Per frame init
         let delta = instant.elapsed();
-        instant = Instant::Now();
+        instant = Instant::now();
         let mut  curr_frame = new_frame();
 
         while event::poll(Duration::default())? {
@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 match key_e.code {
                     KeyCode::Left => player.move_left(),
                     KeyCode::Right => player.move_right(),
-                    KeyCode::Char(" ") | KeyCode::Enter => {
+                    KeyCode::Char(' ') | KeyCode::Enter => {
                         if player.shoot(){
                             audio.play("pew")
                         }
@@ -58,13 +58,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
         }
+          //updates
+    player.update(delta);
         player.draw(&mut curr_frame);
         let _ = render_tx.send(curr_frame);
         thread::sleep(Duration::from_millis(1));
 
     }
-    //updates
-    play.update(delta);
+
 
 
     //Cleanup

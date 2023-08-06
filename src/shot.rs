@@ -23,8 +23,9 @@ impl Shot {
             if self.y > 0 {
                 self.y -= 1;
             }
+            self.timer.reset();
         }
-        self.timer.reset();
+
     }
     pub fn explode(&mut self){
         self.exploding = true;
