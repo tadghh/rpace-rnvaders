@@ -3,7 +3,6 @@ use crossterm::{terminal::{EnterAlternateScreen, self, LeaveAlternateScreen}, Ex
 use rpace_rnvaders::{frame::{self, new_frame, Drawable}, render, player::Player, invaders::Invaders};
 use rusty_audio::Audio;
 fn main() -> Result<(), Box<dyn Error>> {
-    println!("Hello, world!");
     let mut audio = Audio::new();
     audio.add("explode", "explode.wav");
     audio.add("lose", "lose.wav");
@@ -64,7 +63,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         if invaders.update(delta){
             audio.play("move");
         }
-
+        if player.detect_hits(&mut invaders){
+            audio.play("explode");
+        }
         player.draw(&mut curr_frame);
         invaders.draw(&mut curr_frame);
         let drawables: Vec<&dyn Drawable> = vec![&player, &invaders];
@@ -74,6 +75,13 @@ fn main() -> Result<(), Box<dyn Error>> {
         let _ = render_tx.send(curr_frame);
         thread::sleep(Duration::from_millis(1));
 
+        //Win/lose
+        if invaders.all_killed(){
+            break 'gameloop;
+        }
+        if invaders.reached_bottom(){
+            break 'gameloop;
+        }
     }
 
 
